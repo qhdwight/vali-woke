@@ -6,6 +6,9 @@
 
 #include <ctre/phoenix/motorcontrol/can/TalonSRX.h>
 
+#include <networktables/NetworkTable.h>
+#include <networktables/NetworkTableInstance.h>
+
 #define DRIVE_STICK_PORT 0
 #define SLIDE_STICK_PORT 1
 
@@ -28,6 +31,8 @@ private:
     static double clamp01(double input);
 public:
     void RobotInit() override;
+
+    void RobotPeriodic() override;
 
     void DisabledInit() override;
 

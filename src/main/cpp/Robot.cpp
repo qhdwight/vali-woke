@@ -155,6 +155,12 @@ void Robot::DisabledInit() {
     m_QuickStopAccumulator = 0.0;
 }
 
+void Robot::RobotPeriodic() {
+    auto limelight = nt::NetworkTableInstance::GetDefault().GetTable("limelight");
+    limelight->PutNumber("camMode", 1);
+    limelight->PutNumber("ledMode", 1);
+}
+
 #ifndef RUNNING_FRC_TESTS
 
 int main() { return frc::StartRobot<Robot>(); }
