@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Robot.h"
+#include "../include/Robot.h"
 
 #define INPUT_DEAD_BAND 0.08
 
@@ -21,12 +22,26 @@
 #define LOW_SENSITIVITY 0.625
 #define WHEEL_QUICK_TURN_SCALAR 0.65
 
+#define VOLTAGE_COMP 12.0
+#define RAMP_RATE 0.1
+
 void Robot::RobotInit() {
+    m_RightMaster.ConfigFactoryDefault();
+    m_RightSlaveOne.ConfigFactoryDefault();
+    m_RightSlaveTwo.ConfigFactoryDefault();
+    m_LeftMaster.ConfigFactoryDefault();
+    m_LeftSlaveOne.ConfigFactoryDefault();
+    m_LeftSlaveTwo.ConfigFactoryDefault();
     m_RightSlaveOne.Follow(m_RightMaster);
     m_RightSlaveTwo.Follow(m_RightMaster);
     m_LeftSlaveOne.Follow(m_LeftMaster);
     m_LeftSlaveTwo.Follow(m_LeftMaster);
-    m_SliderMaster.ConfigClosedloopRamp(0.2, 500);
+    m_RightMaster.ConfigVoltageCompSaturation(VOLTAGE_COMP);
+    m_RightMaster.ConfigOpenloopRamp(RAMP_RATE);
+    m_RightMaster.EnableVoltageCompensation(true);
+    m_LeftMaster.ConfigVoltageCompSaturation(VOLTAGE_COMP);
+    m_LeftMaster.EnableVoltageCompensation(true);
+    m_LeftMaster.ConfigOpenloopRamp(RAMP_RATE);
 }
 
 void Robot::AutonomousInit() {}
@@ -39,20 +54,11 @@ void Robot::TeleopPeriodic() {
 
     double
             throttle = handleDeadBand(-m_DriveStick.GetY()),
-            wheel = handleDeadBand(m_TurnStick.GetX()),
-            slide;
-    if (m_TurnStick.GetPOV() == 90) {
-        slide = 0.4;
-    } else if (m_TurnStick.GetPOV() == 270) {
-        slide = -0.4;
-    } else {
-        slide = 0.0;
-    }
+            wheel = handleDeadBand(m_TurnStick.GetX());
 
     // P-Drive
 //    m_RightMaster.Set(ctr::ControlMode::PercentOutput, throttle + wheel);
 //    m_LeftMaster.Set(ctr::ControlMode::PercentOutput, throttle - wheel);
-    m_SliderMaster.Set(ctr::ControlMode::PercentOutput, slide);
 
     // Constant-curvature drive
 //    bool isQuickTurn = m_DriveStick.GetTrigger();
@@ -127,12 +133,6 @@ void Robot::TeleopPeriodic() {
         rightOutput = -1.0;
     }
 
-//    std::cout << "Left " << leftOutput << std::endl;
-//    std::cout << "Right " << rightOutput << std::endl;
-//    std::cout << "Linear " << linearPower << std::endl;
-//    std::cout << "Throttle " << throttle << std::endl;
-//    std::cout << "Angular " << angularPower << std::endl;
-
     m_RightMaster.Set(ctr::ControlMode::PercentOutput, -rightOutput);
     m_LeftMaster.Set(ctr::ControlMode::PercentOutput, leftOutput);
 }
@@ -156,9 +156,7 @@ void Robot::DisabledInit() {
 }
 
 void Robot::RobotPeriodic() {
-    auto limelight = nt::NetworkTableInstance::GetDefault().GetTable("limelight");
-    limelight->PutNumber("camMode", 1);
-    limelight->PutNumber("ledMode", 1);
+
 }
 
 #ifndef RUNNING_FRC_TESTS
